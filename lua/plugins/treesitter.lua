@@ -9,6 +9,7 @@ return {
           "javascript", "typescript", "tsx",
           "html", "css", "json", "lua",
         },
+        compilers = { "zig", "gcc", "cl" },
         highlight = { enable = true },
         indent = { enable = true },
       })
