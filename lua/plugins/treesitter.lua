@@ -1,3 +1,16 @@
+-- ~/.config/nvim/plugins/treesitter.lua
+--
+-- SYNTAX HIGHLIGHTING AND CODE FOLDING (Treesitter)
+-- Treesitter parses source code into a syntax tree, enabling:
+--   - More accurate syntax highlighting than regex-based approaches
+--   - Smarter indentation
+--   - Code folding based on actual code structure (functions, blocks, etc.)
+--
+-- The autocommand at the bottom activates Treesitter-based folding for
+-- every file type. Combined with foldlevel=99 in options.lua, all folds
+-- start open — you can close them manually with the 'z' commands.
+
+
 return {
   {
     "nvim-treesitter/nvim-treesitter",
@@ -14,7 +27,7 @@ return {
         indent = { enable = true },
       })
 
-      -- Ativa folding baseado na estrutura do código
+      -- Enable fold-by-structure for all file types
       vim.api.nvim_create_autocmd("FileType", {
         pattern = { "*" },
         callback = function()

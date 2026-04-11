@@ -1,3 +1,19 @@
+-- ~/.config/nvim/plugins/navigation.lua
+--
+-- FILE NAVIGATION
+-- Two tools for moving around the project:
+--
+-- neo-tree  → sidebar file explorer (like VS Code's file tree)
+--             Shows hidden files (.env) and git-ignored files.
+--             Keymap: <Space>e to open/close
+--
+-- telescope → fuzzy finder for searching files and text
+--             Keymaps:
+--               <Space>ff → search files by name
+--               <Space>fg → search text across the whole project (live grep)
+--               <Space>fb → list currently open buffers
+
+
 return {
   -- File explorer
   {

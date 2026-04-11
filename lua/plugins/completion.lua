@@ -1,3 +1,26 @@
+-- ~/.config/nvim/plugins/completion.lua
+--
+-- AUTOCOMPLETION
+-- Sets up the autocomplete menu that appears while you type.
+--
+-- nvim-cmp    → the completion engine (shows the popup menu)
+-- LuaSnip     → snippet engine (expands shortcuts like "div<Tab>" into full HTML)
+-- friendly-snippets → a collection of ready-made snippets for many languages
+--
+-- Sources (what feeds suggestions into the menu, in priority order):
+--   nvim_lsp  → suggestions from the active language server
+--   luasnip   → snippet completions
+--   buffer    → words already present in the current file
+--   path      → file system paths
+--
+-- Key bindings:
+--   <C-Space>  → open the menu manually
+--   <C-e>      → close the menu
+--   <CR>       → confirm the selected suggestion
+--   <Tab>      → move down / expand snippet
+--   <S-Tab>    → move up / jump back in snippet
+
+
 return {
   {
     "hrsh7th/nvim-cmp",

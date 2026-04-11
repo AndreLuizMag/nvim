@@ -1,4 +1,14 @@
--- Bootstrap lazy.nvim
+-- ~/.config/nvim/config/lazy.lua
+--
+-- PLUGIN MANAGER (lazy.nvim)
+-- This file installs lazy.nvim (if it's not already installed) and
+-- configures it to load all plugins from the plugins/ folder.
+--
+-- NOTE: The leader key (<Space>) must be defined HERE, before lazy.nvim
+-- loads any plugin. If it were defined later, some plugin keymaps might
+-- not register correctly.
+
+-- Install lazy.nvim automatically if it's missing
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
   local lazyrepo = "https://github.com/folke/lazy.nvim.git"
@@ -15,21 +25,18 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
--- Make sure to setup `mapleader` and `maplocalleader` before
--- loading lazy.nvim so that mappings are correct.
--- This is also a good place to setup other settings (vim.opt)
+-- Leader key: <Space> is used as the prefix for custom keymaps (e.g. <Space>ff to find files)
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 
--- Setup lazy.nvim
+-- Start lazy.nvim and point it at the plugins/ folder
 require("lazy").setup({
   spec = {
-    -- import your plugins
     { import = "plugins" },
   },
-  -- Configure any other settings here. See the documentation for more details.
-  -- colorscheme that will be used when installing plugins.
   install = { colorscheme = { "habamax" } },
-  -- automatically check for plugin updates
-  checker = { enabled = true },
+  checker = {
+    enabled = true,   -- Check for plugin updates automatically
+    notify = false,   -- Don't show a notification on startup
+  },
 })
