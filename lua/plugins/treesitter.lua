@@ -14,23 +14,40 @@
 return {
   {
     "nvim-treesitter/nvim-treesitter",
-    event = { "BufReadPost", "BufNewFile" },  -- carrega ao abrir qualquer arquivo
+    branch = "main",
+    lazy = false,
     build = ":TSUpdate",
     config = function()
-      require("nvim-treesitter.configs").setup({
-        ensure_installed = {
-          "javascript", "typescript", "tsx",
-          "html", "css", "json", "lua",
-        },
-        compilers = { "zig", "gcc", "cl" },
-        highlight = { enable = true },
-        indent = { enable = true },
+      require("nvim-treesitter").setup({})
+
+      -- "lua" entra aqui também: a query de highlighting que vem com essa
+      -- branch do nvim-treesitter sobrescreve a do Neovim core na runtimepath,
+      -- então o parser de lua precisa vir do mesmo pacote pra não dar
+      -- incompatibilidade (foi isso que causou o erro "Invalid field name").
+      require("nvim-treesitter").install({
+        "lua",
+        "javascript",
+        "typescript",
+        "tsx",
+        "html",
+        "css",
+        "scss",
+        "json",
       })
 
-      -- Enable fold-by-structure for all file types
       vim.api.nvim_create_autocmd("FileType", {
-        pattern = { "*" },
+        pattern = {
+          "javascript",
+          "typescript",
+          "typescriptreact",
+          "javascriptreact",
+          "html",
+          "css",
+          "scss",
+          "json",
+        },
         callback = function()
+          vim.treesitter.start()
           vim.wo[0][0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
           vim.wo[0][0].foldmethod = "expr"
         end,

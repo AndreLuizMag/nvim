@@ -8,16 +8,22 @@ A personal Neovim setup focused on JavaScript and TypeScript development, built 
 
 Before installing, make sure you have the following:
 
-**Neovim 0.11 or newer**
-This configuration uses the native LSP API introduced in 0.11. Older versions will not work.
+**Neovim 0.12 or newer**
+This configuration uses the native LSP API introduced in 0.11, and the native Treesitter integration introduced in 0.12. Older versions will not work.
+
+**Tree-sitter CLI**
+Required by nvim-treesitter to generate and compile syntax parsers locally.
+
+- On **Linux**, install via Cargo: `cargo install --locked tree-sitter-cli`, or through your distro's package manager (e.g. `sudo dnf install tree-sitter-cli` on Fedora).
+- On **Windows**, grab a prebuilt binary from the [official releases page](https://github.com/tree-sitter/tree-sitter/releases/latest).
 
 **Git**
 Required by lazy.nvim to download and update plugins.
 
 **A C compiler**
-Required by nvim-treesitter to compile syntax parsers.
+Required by nvim-treesitter (together with the Tree-sitter CLI above) to compile every syntax parser locally — this is now mandatory, not optional.
 
-- On **Linux**, `gcc` is usually already available. If not: `sudo apt install gcc` (Debian/Ubuntu) or the equivalent for your distro.
+- On **Linux**, `gcc` is usually already available. If not: `sudo apt install gcc` (Debian/Ubuntu), `sudo dnf install gcc gcc-c++` (Fedora), or the equivalent for your distro.
 - On **Windows**, install Zig via winget:
   ```
   winget install zig.zig
@@ -70,8 +76,7 @@ After cloning, open Neovim. lazy.nvim will install itself and then download all 
 ## What Each File Does
 
 ### `init.lua`
-The entry point. Neovim reads this file first on startup. It loads the three config files in order: plugin manager, editor options, and language server activation.
-
+The entry point. Neovim reads this file first on startup. It loads two files, in order: the plugin manager setup (which also triggers lazy.nvim to load everything under `plugins/`, including LSP activation) and the editor options.
 ### `config/lazy.lua`
 Installs and configures [lazy.nvim](https://github.com/folke/lazy.nvim), the plugin manager. Also defines the leader key (`Space`), which is used as the prefix for all custom keymaps. The leader key must be set here, before any plugin loads.
 
@@ -81,14 +86,16 @@ General editor settings with no plugin dependencies:
 - Indentation with 2 spaces
 - All code folds open by default
 
-### `config/lsp.lua`
-Activates the language servers that Mason has installed. The servers configured are: `ts_ls` (JavaScript/TypeScript), `html`, `cssls`, and `emmet_ls`.
-
 ---
 
 ## Plugins
 
 ### Language Server Protocol (LSP) — `plugins/lsp.lua`
+
+This file does two things:
+
+1. At the top, the native LSP servers are activated directly via `vim.lsp.config(...)` and `vim.lsp.enable({...})` — Neovim's built-in API (introduced in 0.11), used here instead of calling `require('lspconfig').<server>.setup{}`.
+2. Below that, the `return { ... }` table tells lazy.nvim which plugins to install:
 
 | Plugin | Purpose |
 |---|---|
@@ -96,7 +103,7 @@ Activates the language servers that Mason has installed. The servers configured 
 | `mason-lspconfig.nvim` | Automatically installs the servers listed in `ensure_installed`. |
 | `nvim-lspconfig` | Provides server definitions used by mason-lspconfig. |
 
-Servers installed automatically: `ts_ls`, `html`, `cssls`, `emmet_ls`.
+Servers activated and installed automatically: `ts_ls`, `html`, `cssls`, `emmet_ls`.
 
 ### Autocompletion — `plugins/completion.lua`
 
@@ -136,12 +143,15 @@ Keymaps:
 | `<Space>fb` | List currently open buffers |
 
 ### Syntax Highlighting — `plugins/treesitter.lua`
-[nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) parses source code into a syntax tree, providing more accurate highlighting than regex-based approaches. It also enables code folding based on actual code structure.
+[nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) handles parser installation only; highlighting and folding themselves are powered natively by Neovim (built-in since 0.12).
 
-Languages installed: `javascript`, `typescript`, `tsx`, `html`, `css`, `json`, `lua`.
+> **Note:** the nvim-treesitter project was archived by its maintainer in April 2026 after a full rewrite (the `main` branch). This config pins that branch explicitly — the previous default branch no longer exists for new installs, and no further updates are expected upstream.
 
-Folding is enabled for all file types. All folds are open by default (controlled by `foldlevel = 99` in `options.lua`). Use `za` to toggle a fold manually.
+Languages installed: `lua`, `javascript`, `typescript`, `tsx`, `html`, `css`, `scss`, `json`.
 
+Highlighting and Treesitter-based folding are enabled explicitly for the front-end languages above via a `FileType` autocommand (Lua gets this automatically from Neovim's own bundled `ftplugin`). Folds are open by default (controlled by `foldlevel = 99` in `options.lua`). Use `za` to toggle a fold manually.
+
+Treesitter-based indentation is available upstream but intentionally **not enabled** here — it's marked experimental, and formatting is already handled by Biome.js/ESLint/Prettier.
 ### Theme — `plugins/theme.lua`
 [Adwaita.nvim](https://github.com/Mofiqul/adwaita.nvim) — a color scheme inspired by GNOME's default UI style. Loaded with high priority to prevent a flash of incorrect colors on startup.
 
@@ -159,15 +169,19 @@ Open Neovim and run:
 ```
 Or press `U` inside the `:Lazy` interface.
 
-### If an update breaks nvim-treesitter
-Treesitter compiles C parsers during installation. If an update fails midway, the plugin can end up in a corrupted state. The fix is to delete the installation and let lazy reinstall from scratch:
+### If Treesitter parsers get out of sync
+Since parsers are compiled locally, a parser can occasionally fall out of sync with its highlighting query — usually after a fresh install or a Neovim upgrade that ships a different bundled parser. The symptom is a `Query error: Invalid field name "..."` when opening a file.
 
-```bash
-rm -rf ~/.local/share/nvim/lazy/nvim-treesitter
-rm -rf ~/.cache/nvim
+Fix by reinstalling just the affected language:
+
 ```
+:TSUninstall lua
 
-Then reopen Neovim and wait for the automatic reinstall to complete.
+:TSUpdate
+```
+(Replace `lua` with whichever language is failing, or use `all` to reset everything.)
+
+Parsers compiled by this branch live in `~/.local/share/nvim/site/parser/` — not inside the plugin's own folder, so deleting `~/.local/share/nvim/lazy/nvim-treesitter` no longer has any effect on installed parsers.
 
 ### Installing a new language server
 1. Open `:Mason` and find the server you want.
@@ -181,5 +195,5 @@ Create a new `.lua` file inside `lua/plugins/` (or add to an existing one). lazy
 ### Checking plugin status
 - `:Lazy` — opens the plugin manager UI (shows installed, pending updates, errors)
 - `:Mason` — opens the language server installer
-- `:TSInstallInfo` — lists all Treesitter parsers and their status
+- `:checkhealth nvim-treesitter` — shows installed parsers and verifies `tree-sitter-cli`/the C compiler are found
 - `:LspInfo` — shows which language servers are active in the current buffer
