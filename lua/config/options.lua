@@ -4,13 +4,13 @@
 -- General behavior settings for the editor.
 -- These have nothing to do with plugins — they are built-in Neovim settings.
 
-vim.opt.number = true          -- Mostra o número da linha
-vim.opt.relativenumber = true  -- Mostra a distância relativa das outras linhas
+vim.opt.number = true          -- Show the line number
+vim.opt.relativenumber = true  -- Show the relative distance to other lines
 
-vim.opt.tabstop = 2       -- Tamanho visual de um tab
-vim.opt.shiftwidth = 2    -- Tamanho da indentação com >> e
-vim.opt.expandtab = true  -- Converte tabs em espaço
+vim.opt.tabstop = 2       -- Visual width of a tab
+vim.opt.shiftwidth = 2    -- Indentation width with >> and 
+vim.opt.expandtab = true  -- Convert tabs to spaces
 
-vim.opt.clipboard = "unnamedplus" -- Usa o clipboard do sistema
+vim.opt.clipboard = "unnamedplus" -- Use the system clipboard
 
-vim.opt.foldlevel = 99  -- Abre todos os folds ao abrir um arquivo
+vim.opt.foldlevel = 99  -- Open all folds when opening a file
