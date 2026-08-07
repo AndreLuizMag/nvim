@@ -13,4 +13,9 @@ vim.opt.expandtab = true  -- Convert tabs to spaces
 
 vim.opt.clipboard = "unnamedplus" -- Use the system clipboard
 
-vim.opt.foldlevel = 99  -- Open all folds when opening a file
+-- FOLDING
+vim.opt.foldmethod = "expr" -- Use Treesitter to determine fold boundaries
+vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- Expression that provides the fold levels
+vim.opt.foldlevel = 99 -- Maximum fold depth before folds start closed
+vim.opt.foldlevelstart = 99 -- Open all folds when opening a file
+vim.opt.foldenable = true -- Enable folding
