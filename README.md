@@ -17,8 +17,8 @@ Required by nvim-treesitter to generate and compile syntax parsers locally.
 - On **Linux**, install via Cargo: `cargo install --locked tree-sitter-cli`, or through your distro's package manager (e.g. `sudo dnf install tree-sitter-cli` on Fedora).
 - On **Windows**, grab a prebuilt binary from the [official releases page](https://github.com/tree-sitter/tree-sitter/releases/latest).
 
-**Git**
-Required by lazy.nvim to download and update plugins.
+**Git 2.38 or newer**
+Required by lazy.nvim to download and update plugins. Version 2.38 is the minimum for mini.diff, which reads the index through `git` to build its reference text.
 
 **A C compiler**
 Required by nvim-treesitter (together with the Tree-sitter CLI above) to compile every syntax parser locally — this is now mandatory, not optional.
@@ -65,6 +65,7 @@ After cloning, open Neovim. lazy.nvim will install itself and then download all 
     └── plugins/
         ├── lsp.lua           ← Mason (language server installer)
         ├── completion.lua    ← Autocomplete menu
+        ├── git.lua           ← Git diff marks and hunk actions
         ├── navigation.lua    ← File explorer and fuzzy finder
         ├── treesitter.lua    ← Syntax highlighting and code folding
         ├── theme.lua         ← Color scheme
@@ -83,6 +84,7 @@ Installs and configures [lazy.nvim](https://github.com/folke/lazy.nvim), the plu
 ### `config/options.lua`
 General editor settings with no plugin dependencies:
 - Line numbers (absolute + relative)
+- Sign column always visible (so mini.diff marks don't shift the text)
 - Indentation with 2 spaces
 - All code folds open by default
 
@@ -141,6 +143,34 @@ Keymaps:
 | `<Space>ff` | Find files by name |
 | `<Space>fg` | Search text across the entire project |
 | `<Space>fb` | List currently open buffers |
+
+### Git — `plugins/git.lua`
+
+| Plugin | Purpose |
+|---|---|
+| `mini.diff` | Marks the lines that differ from the git index and lets you stage or revert each hunk. |
+
+Installed standalone (`nvim-mini/mini.diff`) rather than through the full `mini.nvim` library — only this module is needed, and the smaller clone avoids the long-path errors the full library can trigger on Windows. `version = "*"` pins it to the stable branch.
+
+The reference text comes from git, so nothing is shown for files outside a repository. Staging a hunk works; unstaging does not — use the git CLI for that.
+
+Changes are marked with a thin `▏` bar in the sign column on the left. Two deliberate changes from the defaults:
+
+- `view.style` is pinned to `"sign"`. The plugin picks this style on its own whenever `number` is off at setup time — and it is, because `init.lua` loads `config.lazy` (which runs the plugin's setup) before `config.options` enables `number`. Pinning it keeps the look stable if that order ever changes. Swap to `"number"` to color the line number instead of using a sign.
+- `view.signs` uses `▏` (left one eighth block) instead of the default `▒`, which fills the whole cell and reads as a thick bar.
+
+`signcolumn` is set to `yes` in `config/options.lua` so the column is always reserved — the plugin's docs recommend it for this style, otherwise the text shifts sideways the moment the first hunk appears.
+
+Keymaps:
+
+| Key | Action |
+|---|---|
+| `]h` / `[h` | Next / previous hunk |
+| `]H` / `[H` | Last / first hunk |
+| `ghgh` | Stage the hunk under the cursor |
+| `gHgH` | Revert the hunk under the cursor |
+| `gh` (visual) | Hunk text object |
+| `<Space>gd` | Toggle the inline diff overlay |
 
 ### Syntax Highlighting — `plugins/treesitter.lua`
 [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) handles parser installation only; highlighting and folding themselves are powered natively by Neovim (built-in since 0.12).

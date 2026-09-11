@@ -7,6 +7,10 @@
 vim.opt.number = true          -- Show the line number
 vim.opt.relativenumber = true  -- Show the relative distance to other lines
 
+-- Always reserve the sign column. Without this it is created on demand, so the
+-- whole text shifts sideways the moment mini.diff marks the first hunk.
+vim.opt.signcolumn = "yes"
+
 vim.opt.tabstop = 2       -- Visual width of a tab
 vim.opt.shiftwidth = 2    -- Indentation width with >> and 
 vim.opt.expandtab = true  -- Convert tabs to spaces

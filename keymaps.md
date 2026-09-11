@@ -193,3 +193,20 @@
 | `:Telescope live_grep`  | Find word inside of the files |
 
 
+---
+## mini.diff
+
+Marks lines that differ from the git index. Only works inside a git repository.
+
+| Key         | Action                           |
+| ----------- | -------------------------------- |
+| `]h`        | Go to the next hunk              |
+| `[h`        | Go to the previous hunk          |
+| `]H`        | Go to the last hunk              |
+| `[H`        | Go to the first hunk             |
+| `ghgh`      | Stage the hunk under the cursor  |
+| `gHgH`      | Revert the hunk under the cursor |
+| `gh`        | Hunk text object (visual mode)   |
+| `<space>gd` | Toggle the inline diff overlay   |
+
+
