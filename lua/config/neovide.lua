@@ -15,11 +15,20 @@ vim.o.guifont = "Maple Mono Light:h12"
 -- Vertical spacing between lines
 vim.opt.linespace = 4
 
+-- LINE WRAPPING
+-- No terminal o Neovim mantém o padrão (wrap ligado) — essa linha só roda
+-- dentro do Neovide (por causa do return acima), então dá pra desligar a
+-- quebra automática aqui sem afetar o comportamento que você usa no terminal.
+vim.opt.wrap = false
+
 -- Space between the OS window border and the buffer content
 vim.g.neovide_padding_top = 12
 vim.g.neovide_padding_bottom = 12
 vim.g.neovide_padding_right = 12
 vim.g.neovide_padding_left = 12
+
+-- Cmd line default hidden
+vim.o.cmdheight = 0
 
 --- Overall UI scale — works like a zoom, useful on high-DPI screens
 vim.g.neovide_scale_factor = 1.0
