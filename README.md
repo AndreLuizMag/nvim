@@ -28,6 +28,12 @@ Required by nvim-treesitter (together with the Tree-sitter CLI above) to compile
   ```
   winget install zig.zig
   ```
+  Zig alone is not enough, though. The Tree-sitter CLI resolves its compiler through Rust's `cc`
+  crate, which on Windows assumes MSVC and calls `cl.exe` — with no Visual Studio installed every
+  parser build dies with `Error: program not found`. To bridge that, this repo ships two shims in
+  `bin/` that hand the work to Zig, and `config/compiler.lua` points `CC`/`CXX` at them. Nothing
+  else to install or configure; see that file for why the shim is named `gcc.bat` and why the
+  `-target` flag comes last.
 
 **Fira Code Nerd Font**
 The file explorer and status icons depend on a font that includes special symbols (Nerd Font). Download [Fira Code Nerd Font](https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/FiraCode.zip), install it on your system, and set it as the default font in your terminal emulator.
@@ -58,10 +64,15 @@ After cloning, open Neovim. lazy.nvim will install itself and then download all 
 ```
 ~/.config/nvim/
 ├── init.lua                  ← Entry point, loads everything else
+├── bin/                      ← Zig shims used as the C compiler on Windows
+│   ├── gcc.bat
+│   └── g++.bat
 └── lua/
     ├── config/
+    │   ├── compiler.lua      ← Points the parser build at a working C compiler (Windows)
     │   ├── lazy.lua          ← Plugin manager setup and leader key
     │   ├── options.lua       ← Editor behavior settings
+    │   ├── neovide.lua       ← Neovide GUI settings (no-op in the terminal)
     └── plugins/
         ├── lsp.lua           ← Mason (language server installer)
         ├── completion.lua    ← Autocomplete menu
@@ -77,7 +88,11 @@ After cloning, open Neovim. lazy.nvim will install itself and then download all 
 ## What Each File Does
 
 ### `init.lua`
-The entry point. Neovim reads this file first on startup. It loads two files, in order: the plugin manager setup (which also triggers lazy.nvim to load everything under `plugins/`, including LSP activation) and the editor options.
+The entry point. Neovim reads this file first on startup. It loads four files, in order: the compiler shim setup, the plugin manager setup (which also triggers lazy.nvim to load everything under `plugins/`, including LSP activation), the editor options, and the Neovide GUI settings.
+
+### `config/compiler.lua`
+Windows only, and a no-op everywhere else. Sets `CC`/`CXX` to the Zig shims in `bin/` so the Tree-sitter CLI can actually compile parsers without Visual Studio. This has to run before `lazy.setup()`, because `plugins/treesitter.lua` kicks off `install()` as soon as the plugin is configured.
+
 ### `config/lazy.lua`
 Installs and configures [lazy.nvim](https://github.com/folke/lazy.nvim), the plugin manager. Also defines the leader key (`Space`), which is used as the prefix for all custom keymaps. The leader key must be set here, before any plugin loads.
 
@@ -102,7 +117,7 @@ This file does two things:
 | Plugin | Purpose |
 |---|---|
 | `mason.nvim` | GUI installer for language servers. Open with `:Mason`. |
-| `mason-lspconfig.nvim` | Automatically installs the servers listed in `ensure_installed`. |
+| `mason-lspconfig.nvim` | Automatically installs the servers listed in `ensure_installed`. Its `automatic_enable` is turned off, since the servers are already enabled explicitly at the top of the file. |
 | `nvim-lspconfig` | Provides server definitions used by mason-lspconfig. |
 
 Servers activated and installed automatically: `ts_ls`, `html`, `cssls`, `emmet_ls`.
@@ -200,24 +215,28 @@ Open Neovim and run:
 Or press `U` inside the `:Lazy` interface.
 
 ### If Treesitter parsers get out of sync
-Since parsers are compiled locally, a parser can occasionally fall out of sync with its highlighting query — usually after a fresh install or a Neovim upgrade that ships a different bundled parser. The symptom is a `Query error: Invalid field name "..."` when opening a file.
+Since parsers are compiled locally, a parser can fall out of sync with its highlighting query — most often right after `:Lazy update`, because the queries that ship with the plugin move forward while the compiled parser on disk stays behind. The symptom is a `Query error: Invalid field name "..."` when opening a file.
 
-Fix by reinstalling just the affected language:
+Fix by rebuilding the parsers:
 
 ```
-:TSUninstall lua
-
 :TSUpdate
 ```
-(Replace `lua` with whichever language is failing, or use `all` to reset everything.)
+(Or `:TSUninstall lua` followed by `:TSUpdate` to force one language from scratch.)
 
-Parsers compiled by this branch live in `~/.local/share/nvim/site/parser/` — not inside the plugin's own folder, so deleting `~/.local/share/nvim/lazy/nvim-treesitter` no longer has any effect on installed parsers.
+If the rebuild itself fails, the compiler is the problem, not the parser — check the `bin/` shims and `config/compiler.lua` described in the Requirements section.
+
+Parsers compiled by this branch live outside the plugin, one `.so` per language:
+- **Linux:** `~/.local/share/nvim/site/parser/`
+- **Windows:** `%LOCALAPPDATA%\nvim-data\site\parser\`
+
+So deleting the plugin folder has no effect on installed parsers. A `parser/` directory left behind *inside* `lazy/nvim-treesitter/` is a leftover from the pre-rewrite layout; `site/parser/` comes first in the runtimepath and wins, and `:checkhealth vim.treesitter` marks the shadowed copies as `(not loaded)`.
 
 ### Installing a new language server
 1. Open `:Mason` and find the server you want.
 2. Press `i` to install it.
 3. Add the server name to `ensure_installed` in `plugins/lsp.lua` (so it stays installed on future machines).
-4. Add `vim.lsp.config("server_name", {})` and include it in `vim.lsp.enable({...})` in `config/lsp.lua`.
+4. Add `vim.lsp.config("server_name", {})` and include it in `vim.lsp.enable({...})` at the top of `plugins/lsp.lua`.
 
 ### Adding a new plugin
 Create a new `.lua` file inside `lua/plugins/` (or add to an existing one). lazy.nvim scans that entire folder automatically — no need to register anything in `init.lua`.

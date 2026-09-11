@@ -41,7 +41,9 @@ return {
         "cssls",     -- CSS e SCSS
         "emmet_ls",  -- Emmet
       },
-      automatic_installation = true,
+      -- Os servidores já são ligados explicitamente com vim.lsp.enable no topo
+      -- deste arquivo; deixar o mason-lspconfig ligar de novo só duplicaria.
+      automatic_enable = false,
     },
   },
 
