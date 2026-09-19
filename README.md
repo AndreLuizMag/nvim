@@ -120,7 +120,7 @@ This file does two things:
 | `mason-lspconfig.nvim` | Automatically installs the servers listed in `ensure_installed`. Its `automatic_enable` is turned off, since the servers are already enabled explicitly at the top of the file. |
 | `nvim-lspconfig` | Provides server definitions used by mason-lspconfig. |
 
-Servers activated and installed automatically: `ts_ls`, `html`, `cssls`, `emmet_ls`.
+Servers activated and installed automatically: `ts_ls`, `html`, `cssls`, `emmet_ls`, `jsonls`, `lua_ls`.
 
 ### Autocompletion — `plugins/completion.lua`
 

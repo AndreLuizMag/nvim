@@ -17,6 +17,19 @@ vim.opt.expandtab = true  -- Convert tabs to spaces
 
 vim.opt.clipboard = "unnamedplus" -- Use the system clipboard
 
+-- LINE WRAPPING
+vim.opt.wrap = false -- Don't visually wrap long lines by default
+
+local wrap_group = vim.api.nvim_create_augroup("wrap_filetypes", { clear = true })
+vim.api.nvim_create_autocmd("FileType", {
+  group = wrap_group,
+  pattern = { "markdown", "text" }, -- Only wrap in .md and .txt files
+  callback = function()
+    vim.opt_local.wrap = true
+    vim.opt_local.linebreak = true -- Break at word boundaries, not mid-word
+  end,
+})
+
 -- FOLDING
 vim.opt.foldmethod = "expr" -- Use Treesitter to determine fold boundaries
 vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- Expression that provides the fold levels

@@ -18,8 +18,16 @@ vim.lsp.config("cssls", {})
 vim.lsp.config("emmet_ls", {
   filetypes = { "html", "css", "scss", "javascriptreact", "typescriptreact" },
 })
+vim.lsp.config("jsonls", {})
+vim.lsp.config("lua_ls", {
+  settings = {
+    Lua = {
+      diagnostics = { globals = { "vim" } }, -- Não marcar `vim` como global indefinida
+    },
+  },
+})
 
-vim.lsp.enable({ "ts_ls", "html", "cssls", "emmet_ls" })
+vim.lsp.enable({ "ts_ls", "html", "cssls", "emmet_ls", "jsonls", "lua_ls" })
 
 
 return {
@@ -40,6 +48,8 @@ return {
         "html",      -- HTML
         "cssls",     -- CSS e SCSS
         "emmet_ls",  -- Emmet
+        "jsonls",    -- JSON
+        "lua_ls",    -- Lua
       },
       -- Os servidores já são ligados explicitamente com vim.lsp.enable no topo
       -- deste arquivo; deixar o mason-lspconfig ligar de novo só duplicaria.
