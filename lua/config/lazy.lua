@@ -34,7 +34,7 @@ require("lazy").setup({
   spec = {
     { import = "plugins" },
   },
-  install = { colorscheme = { "habamax" } }, -- Trocado na Etapa 2 para o colorscheme do mini.nvim
+  install = { colorscheme = { "miniwinter" } }, -- Colorscheme do mini.nvim, ativado de fato em plugins/mini.lua
   checker = {
     enabled = true, -- Check for plugin updates automatically
     notify = false, -- Don't show a notification on startup
