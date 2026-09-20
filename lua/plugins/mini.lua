@@ -10,6 +10,7 @@ return {
     version = false,   -- branch `main` (desenvolvimento), conforme recomendação do projeto
     lazy = false,
     priority = 1000,   -- carrega antes de tudo: o colorscheme vem daqui
+    dependencies = { "rafamadriz/friendly-snippets" }, -- só fonte de dados JSON para mini.snippets
     config = function()
       -- COLORSCHEME
       -- miniwinter: paleta azulada baseada em mini.hues, a mais próxima em
@@ -57,6 +58,48 @@ return {
       -- MiniPick.registry, disponíveis via :Pick <nome>. Nenhum é mapeado
       -- diretamente nesta etapa.
       require("mini.extra").setup()
+
+      -- SNIPPETS
+      -- Precisa vir antes de mini.completion: o default_snippet_insert do
+      -- mini.completion só usa mini.snippets se ele já estiver com setup()
+      -- feito no momento da inserção.
+      local gen_loader = require("mini.snippets").gen_loader
+      require("mini.snippets").setup({
+        snippets = {
+          -- friendly-snippets não lê 1:1 por filetype nem expõe seu
+          -- package.json para o mini.snippets — os caminhos abaixo replicam
+          -- manualmente o mapeamento real do package.json dele para os
+          -- filetypes do stack de front-end (JS/TS/React, HTML, CSS/SCSS).
+          gen_loader.from_lang({
+            lang_patterns = {
+              javascript = { "javascript/javascript.json" },
+              typescript = { "javascript/typescript.json" },
+              javascriptreact = {
+                "javascript/javascript.json",
+                "javascript/react.json",
+                "javascript/react-es7.json",
+                "javascript/next.json",
+                "html.json",
+              },
+              typescriptreact = {
+                "javascript/typescript.json",
+                "javascript/react-ts.json",
+                "javascript/react-es7.json",
+                "javascript/next-ts.json",
+                "html.json",
+              },
+              html = { "html.json" },
+              css = { "css.json" },
+              scss = { "css.json" }, -- friendly-snippets não tem scss.json separado
+            },
+          }),
+        },
+      })
+      -- Expõe os snippets carregados dentro do popup de completion (não só via <C-j> direto)
+      MiniSnippets.start_lsp_server()
+
+      -- COMPLETION
+      require("mini.completion").setup()
 
       -- KEYMAPS — navegação
       -- Preserva a memória muscular de neo-tree/telescope, com dois atalhos

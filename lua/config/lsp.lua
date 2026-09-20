@@ -4,6 +4,10 @@
 -- Ativação nativa dos servidores (Neovim 0.11+) e o único keymap que a
 -- própria versão do Neovim ainda não cobre por padrão.
 
+-- Capabilities de completion (auto-import via additionalTextEdits, snippets)
+-- aplicadas a todos os servidores configurados abaixo
+vim.lsp.config("*", { capabilities = MiniCompletion.get_lsp_capabilities() })
+
 vim.lsp.config("ts_ls", {})
 vim.lsp.config("html", {})
 vim.lsp.config("cssls", {})
