@@ -1,0 +1,4 @@
+-- ~/.config/nvim-mini/lua/config/lsp.lua
+--
+-- LSP NATIVE ACTIVATION
+-- vim.lsp.config / vim.lsp.enable entram aqui a partir da Etapa 4.

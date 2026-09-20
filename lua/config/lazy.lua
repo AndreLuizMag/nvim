@@ -1,8 +1,8 @@
--- ~/.config/nvim/config/lazy.lua
+-- ~/.config/nvim-mini/lua/config/lazy.lua
 --
 -- PLUGIN MANAGER (lazy.nvim)
--- This file installs lazy.nvim (if it's not already installed) and
--- configures it to load all plugins from the plugins/ folder.
+-- Installs lazy.nvim (if missing) and configures it to load all plugins
+-- from the plugins/ folder.
 --
 -- NOTE: The leader key (<Space>) must be defined HERE, before lazy.nvim
 -- loads any plugin. If it were defined later, some plugin keymaps might
@@ -34,9 +34,9 @@ require("lazy").setup({
   spec = {
     { import = "plugins" },
   },
-  install = { colorscheme = { "habamax" } },
+  install = { colorscheme = { "habamax" } }, -- Trocado na Etapa 2 para o colorscheme do mini.nvim
   checker = {
-    enabled = true,   -- Check for plugin updates automatically
-    notify = false,   -- Don't show a notification on startup
+    enabled = true, -- Check for plugin updates automatically
+    notify = false, -- Don't show a notification on startup
   },
 })
