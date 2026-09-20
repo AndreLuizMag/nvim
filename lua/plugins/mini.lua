@@ -45,6 +45,31 @@ return {
           hex_color = hipatterns.gen_highlighter.hex_color(),
         },
       })
+
+      -- FILES
+      require("mini.files").setup()
+
+      -- PICK
+      require("mini.pick").setup()
+
+      -- EXTRA
+      -- Registra pickers adicionais (buf_lines, diagnostic, git_*, etc.) em
+      -- MiniPick.registry, disponíveis via :Pick <nome>. Nenhum é mapeado
+      -- diretamente nesta etapa.
+      require("mini.extra").setup()
+
+      -- KEYMAPS — navegação
+      -- Preserva a memória muscular de neo-tree/telescope, com dois atalhos
+      -- novos (fh, fr) e um resolvendo um gap conhecido da main (fs).
+      vim.keymap.set("n", "<leader>e", MiniFiles.open, { desc = "Abrir explorador de arquivos" })
+      vim.keymap.set("n", "<leader>ff", MiniPick.builtin.files, { desc = "Buscar arquivos" })
+      vim.keymap.set("n", "<leader>fg", MiniPick.builtin.grep_live, { desc = "Buscar texto no projeto" })
+      vim.keymap.set("n", "<leader>fb", MiniPick.builtin.buffers, { desc = "Listar buffers abertos" })
+      vim.keymap.set("n", "<leader>fh", MiniPick.builtin.help, { desc = "Buscar help tags" })
+      vim.keymap.set("n", "<leader>fr", MiniPick.builtin.resume, { desc = "Retomar último picker" })
+      vim.keymap.set("n", "<leader>fs", function()
+        MiniPick.builtin.grep({ pattern = vim.fn.expand("<cword>") })
+      end, { desc = "Buscar palavra sob o cursor no projeto" })
     end,
   },
 }
