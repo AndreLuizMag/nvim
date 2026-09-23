@@ -101,6 +101,25 @@ return {
       -- COMPLETION
       require("mini.completion").setup()
 
+      -- GANHO PASSIVO (não exige hábito novo, melhora o que já se faz)
+      require("mini.ai").setup()
+      require("mini.pairs").setup()
+      require("mini.surround").setup()
+
+      -- EXIGE HÁBITO NOVO (usuário precisa aprender os mappings)
+      require("mini.operators").setup({
+        -- Default usa "gr" e remove a família nativa gra/gri/grn/grr/grt/grx
+        -- do LSP (Etapa 4); "cr" preserva os 6 mappings nativos intactos.
+        replace = { prefix = "cr" },
+      })
+      require("mini.splitjoin").setup()
+      require("mini.move").setup()
+      require("mini.bracketed").setup({
+        -- mini.indentscope já cobre [i/]i com mais recursos (Etapa 2);
+        -- a própria doc do mini.bracketed recomenda desabilitar aqui.
+        indent = { suffix = "" },
+      })
+
       -- KEYMAPS — navegação
       -- Preserva a memória muscular de neo-tree/telescope, com dois atalhos
       -- novos (fh, fr) e um resolvendo um gap conhecido da main (fs).
