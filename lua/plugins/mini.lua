@@ -132,6 +132,64 @@ return {
       vim.keymap.set("n", "<leader>fs", function()
         MiniPick.builtin.grep({ pattern = vim.fn.expand("<cword>") })
       end, { desc = "Buscar palavra sob o cursor no projeto" })
+
+      -- DIFF
+      local diff = require("mini.diff")
+      diff.setup({
+        view = {
+          -- O default depende de vim.go.number, mas config.lazy roda antes de
+          -- config.options — nesse momento 'number' ainda está no valor de
+          -- fábrica (false), então o default calculado já seria "sign" mesmo.
+          -- Fixado explicitamente pra não virar "number" se a ordem dos
+          -- requires do init.lua mudar (mesmo raciocínio já usado no git.lua
+          -- de main/new-setup para este módulo).
+          style = "sign",
+          -- Default é "▒" (bloco cheio); "▏" desenha só uma barra fina na
+          -- borda esquerda — reaproveitando a escolha já em uso em main.
+          signs = { add = "▏", change = "▏", delete = "▏" },
+        },
+      })
+      -- O overlay não tem mapping default na documentação
+      vim.keymap.set("n", "<leader>gd", diff.toggle_overlay, { desc = "Alternar overlay de diff" })
+
+      -- GIT
+      -- Popula vim.b.minigit_summary_string em todo buffer normal; a seção de
+      -- branch da mini.statusline (Etapa 2) já consome isso automaticamente,
+      -- sem precisar de nenhuma configuração extra aqui.
+      require("mini.git").setup()
+
+      -- CLUE
+      -- Precisa vir por último entre os módulos que usam prefixo "g" (mini.ai,
+      -- mini.operators, mini.bracketed da Etapa 7): os triggers do mini.clue
+      -- devem ser os mapeamentos mais recentes desses prefixos.
+      local miniclue = require("mini.clue")
+      miniclue.setup({
+        triggers = {
+          { mode = { "n", "x" }, keys = "<Leader>" },
+          { mode = "n", keys = "[" },
+          { mode = "n", keys = "]" },
+          { mode = "i", keys = "<C-x>" },
+          { mode = { "n", "x" }, keys = "g" },
+          { mode = { "n", "x" }, keys = "'" },
+          { mode = { "n", "x" }, keys = "`" },
+          { mode = { "n", "x" }, keys = '"' },
+          { mode = { "i", "c" }, keys = "<C-r>" },
+          { mode = "n", keys = "<C-w>" },
+          { mode = { "n", "x" }, keys = "z" },
+        },
+        clues = {
+          -- Único grupo <leader> real desta config (ver achado 5 — <leader>r
+          -- e <leader>c da Etapa 4 não existem, mantivemos o LSP nativo)
+          { mode = "n", keys = "<Leader>f", desc = "+Find/Buscar" },
+          miniclue.gen_clues.square_brackets(),
+          miniclue.gen_clues.builtin_completion(),
+          miniclue.gen_clues.g(),
+          miniclue.gen_clues.marks(),
+          miniclue.gen_clues.registers(),
+          miniclue.gen_clues.windows(),
+          miniclue.gen_clues.z(),
+        },
+      })
     end,
   },
 }
