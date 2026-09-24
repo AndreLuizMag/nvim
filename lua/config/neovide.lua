@@ -1,4 +1,4 @@
--- ~/.config/nvim/lua/config/neovide.lua
+-- ~/.config/nvim-mini/lua/config/neovide.lua
 --
 -- NEOVIDE (GUI)
 -- vim.g.neovide is set automatically by Neovide itself when it connects.

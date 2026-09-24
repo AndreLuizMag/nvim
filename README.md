@@ -1,6 +1,10 @@
-# Neovim Configuration
+# Neovim Configuration (mini.nvim experiment)
 
-A personal Neovim setup focused on JavaScript and TypeScript development, built on top of [lazy.nvim](https://github.com/folke/lazy.nvim).
+A from-scratch rebuild of the [production config](https://github.com/AndreLuizMag/nvim) (`main` branch) that replaces as much as possible with modules from the [mini.nvim](https://nvim-mini.org/mini.nvim) library, built on top of [lazy.nvim](https://github.com/folke/lazy.nvim).
+
+This branch (`feat/mini`) is a self-contained experiment. It lives in its own worktree (`~/.config/nvim-mini`, run with `NVIM_APPNAME=nvim-mini`) and never touches the production config. See [Reverting](#reverting) if you want to discard it.
+
+**Result:** 20 plugin repositories → **7**. 12 `.lua` files → **9**. 0 mini modules → **21**, all from one repository.
 
 ---
 
@@ -11,238 +15,226 @@ Before installing, make sure you have the following:
 **Neovim 0.12 or newer**
 This configuration uses the native LSP API introduced in 0.11, and the native Treesitter integration introduced in 0.12. Older versions will not work.
 
+**ripgrep** — *new requirement introduced by this branch*
+Powers `mini.pick`'s `files`, `grep`, and `grep_live` pickers (a single tool covers all three). Without it, `mini.pick` falls back to `git` inside a git repository, or nothing at all outside one.
+
+- On **Linux**, install via your package manager, e.g. `sudo dnf install ripgrep` (Fedora), `sudo apt install ripgrep` (Debian/Ubuntu). On an immutable/atomic distro where `dnf`/`apt` don't apply (Fedora Silverblue, Bazzite, etc.), `rpm-ostree install ripgrep` works but only takes effect after a reboot — `brew install ripgrep` (via [Homebrew on Linux](https://brew.sh)) is the faster path if you already have it.
+- On **Windows**, `winget install BurntSushi.ripgrep.MSVC`.
+
 **Tree-sitter CLI**
 Required by nvim-treesitter to generate and compile syntax parsers locally.
 
-- On **Linux**, install via Cargo: `cargo install --locked tree-sitter-cli`, or through your distro's package manager (e.g. `sudo dnf install tree-sitter-cli` on Fedora).
+- On **Linux**, install via Cargo: `cargo install --locked tree-sitter-cli`, or through your distro's package manager.
 - On **Windows**, grab a prebuilt binary from the [official releases page](https://github.com/tree-sitter/tree-sitter/releases/latest).
 
 **Git 2.38 or newer**
-Required by lazy.nvim to download and update plugins. Version 2.38 is the minimum for mini.diff, which reads the index through `git` to build its reference text.
+Required by lazy.nvim to download and update plugins. Version 2.38 is the minimum for `mini.diff`, which reads the index through `git` to build its reference text.
 
 **A C compiler**
-Required by nvim-treesitter (together with the Tree-sitter CLI above) to compile every syntax parser locally — this is now mandatory, not optional.
+Required by nvim-treesitter (together with the Tree-sitter CLI above) to compile every syntax parser locally.
 
-- On **Linux**, `gcc` is usually already available. If not: `sudo apt install gcc` (Debian/Ubuntu), `sudo dnf install gcc gcc-c++` (Fedora), or the equivalent for your distro.
-- On **Windows**, install Zig via winget:
-  ```
-  winget install zig.zig
-  ```
-  Zig alone is not enough, though. The Tree-sitter CLI resolves its compiler through Rust's `cc`
-  crate, which on Windows assumes MSVC and calls `cl.exe` — with no Visual Studio installed every
-  parser build dies with `Error: program not found`. To bridge that, this repo ships two shims in
-  `bin/` that hand the work to Zig, and `config/compiler.lua` points `CC`/`CXX` at them. Nothing
-  else to install or configure; see that file for why the shim is named `gcc.bat` and why the
-  `-target` flag comes last.
+- On **Linux**, `gcc` is usually already available.
+- On **Windows**, install Zig via `winget install zig.zig`. The Tree-sitter CLI resolves its compiler through Rust's `cc` crate, which on Windows assumes MSVC and calls `cl.exe` — with no Visual Studio installed every parser build dies with `Error: program not found`. This repo ships two shims in `bin/` that hand the work to Zig instead, and `lua/config/compiler.lua` points `CC`/`CXX` at them. Nothing else to install or configure; see that file for why the shim is named `gcc.bat` and why the `-target` flag comes last.
 
-**Fira Code Nerd Font**
-The file explorer and status icons depend on a font that includes special symbols (Nerd Font). Download [Fira Code Nerd Font](https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/FiraCode.zip), install it on your system, and set it as the default font in your terminal emulator.
+**Fira Code Nerd Font / Nerd Font**
+`mini.icons` and the statusline/tabline depend on a font with special glyphs. Set one as the default in your terminal emulator (and Neovide, if used).
 
 ---
 
-## Installation
+## Installation (this experimental branch)
 
-**Linux**
-Clone this repository into the Neovim config directory:
 ```bash
-git clone https://github.com/AndreLuizMag/nvim.git ~/.config/nvim
+cd ~/.config/nvim   # your existing clone of the production config
+git worktree add ~/.config/nvim-mini feat/mini
 ```
 
-**Windows**
-Clone this repository into the equivalent directory:
-```
-git clone https://github.com/AndreLuizMag/nvim.git C:\Users\USERNAME\AppData\Local\nvim
-```
-Replace `USERNAME` with your actual Windows username.
+Then always run this config with:
 
-After cloning, open Neovim. lazy.nvim will install itself and then download all plugins automatically. Wait for the installation to finish, then close and reopen Neovim.
+```bash
+NVIM_APPNAME=nvim-mini nvim
+```
+
+This isolates config (`~/.config/nvim-mini`), plugin data (`~/.local/share/nvim-mini`), and state (`~/.local/state/nvim-mini`) from the production install — running plain `nvim` continues to open the production config untouched.
+
+On first launch, `lazy.nvim` installs itself and downloads all 7 plugins automatically (`mini.nvim`'s modules compile no native code; only `nvim-treesitter`'s 8 parsers need the C compiler above). Mason then downloads the 6 language servers in the background — this needs an interactive (non-headless) session, since `mason-lspconfig` skips its auto-install step when run headless.
 
 ---
 
 ## File Structure
 
 ```
-~/.config/nvim/
-├── init.lua                  ← Entry point, loads everything else
-├── bin/                      ← Zig shims used as the C compiler on Windows
+~/.config/nvim-mini/
+├── init.lua
+├── lazy-lock.json
+├── README.md
+├── keymaps.md
+├── bin/                    ← Zig shims used as the C compiler on Windows
 │   ├── gcc.bat
 │   └── g++.bat
 └── lua/
     ├── config/
-    │   ├── compiler.lua      ← Points the parser build at a working C compiler (Windows)
-    │   ├── lazy.lua          ← Plugin manager setup and leader key
-    │   ├── options.lua       ← Editor behavior settings
-    │   ├── neovide.lua       ← Neovide GUI settings (no-op in the terminal)
+    │   ├── compiler.lua    ← Points the parser build at a working C compiler (Windows)
+    │   ├── lazy.lua        ← Plugin manager setup and leader key
+    │   ├── options.lua     ← Editor behavior settings
+    │   ├── lsp.lua         ← Native vim.lsp.config/vim.lsp.enable activation
+    │   └── neovide.lua     ← Neovide GUI settings (no-op in the terminal)
     └── plugins/
-        ├── lsp.lua           ← Mason (language server installer)
-        ├── completion.lua    ← Autocomplete menu
-        ├── git.lua           ← Git diff marks and hunk actions
-        ├── navigation.lua    ← File explorer and fuzzy finder
-        ├── treesitter.lua    ← Syntax highlighting and code folding
-        ├── theme.lua         ← Color scheme
-        └── ui.lua            ← Visual enhancements
+        ├── mini.lua        ← All 21 mini.nvim modules, in one file, by section
+        ├── lsp.lua         ← Mason + mason-lspconfig + nvim-lspconfig specs
+        └── treesitter.lua  ← Parser installation and folding
 ```
+
+> Fixes a long-standing inconsistency in the production config: its `plugins/lsp.lua` header references a `config/lsp.lua` that was never actually created. Here, that separation is real: `config/lsp.lua` is native activation, `plugins/lsp.lua` is only lazy.nvim specs.
 
 ---
 
 ## What Each File Does
 
 ### `init.lua`
-The entry point. Neovim reads this file first on startup. It loads four files, in order: the compiler shim setup, the plugin manager setup (which also triggers lazy.nvim to load everything under `plugins/`, including LSP activation), the editor options, and the Neovide GUI settings.
+The entry point. Loads, in order: `compiler.lua` (must run before `lazy.setup()`, since `plugins/treesitter.lua` triggers a parser `install()` as soon as it's configured), `lazy.lua`, `options.lua`, `lsp.lua`, `neovide.lua`.
 
 ### `config/compiler.lua`
-Windows only, and a no-op everywhere else. Sets `CC`/`CXX` to the Zig shims in `bin/` so the Tree-sitter CLI can actually compile parsers without Visual Studio. This has to run before `lazy.setup()`, because `plugins/treesitter.lua` kicks off `install()` as soon as the plugin is configured.
+Windows only, a no-op everywhere else. See Requirements above.
 
 ### `config/lazy.lua`
-Installs and configures [lazy.nvim](https://github.com/folke/lazy.nvim), the plugin manager. Also defines the leader key (`Space`), which is used as the prefix for all custom keymaps. The leader key must be set here, before any plugin loads.
+Installs and configures lazy.nvim. Defines the leader key (`<Space>`) before any plugin loads, and the fallback install colorscheme (`miniwinter`).
 
 ### `config/options.lua`
-General editor settings with no plugin dependencies:
-- Line numbers (absolute + relative)
-- Sign column always visible (so mini.diff marks don't shift the text)
-- Indentation with 2 spaces
-- All code folds open by default
+Native editor behavior, no plugin dependencies: line numbers, always-visible sign column (so `mini.diff` marks don't shift text), 2-space indentation, `wrap` off everywhere except `markdown`/`text` files, and `foldlevel = 99` so folds start open.
+
+### `config/lsp.lua`
+Native LSP activation (`vim.lsp.config` / `vim.lsp.enable`, Neovim 0.11+ API — never `require('lspconfig').<server>.setup{}`), global completion capabilities from `mini.completion`, and the one keymap (`gd`) that Neovim doesn't map by default.
+
+### `config/neovide.lua`
+Unchanged GUI-only settings, no-op in the terminal.
 
 ---
 
 ## Plugins
 
-### Language Server Protocol (LSP) — `plugins/lsp.lua`
-
-This file does two things:
-
-1. At the top, the native LSP servers are activated directly via `vim.lsp.config(...)` and `vim.lsp.enable({...})` — Neovim's built-in API (introduced in 0.11), used here instead of calling `require('lspconfig').<server>.setup{}`.
-2. Below that, the `return { ... }` table tells lazy.nvim which plugins to install:
+### The 7 repositories
 
 | Plugin | Purpose |
 |---|---|
-| `mason.nvim` | GUI installer for language servers. Open with `:Mason`. |
-| `mason-lspconfig.nvim` | Automatically installs the servers listed in `ensure_installed`. Its `automatic_enable` is turned off, since the servers are already enabled explicitly at the top of the file. |
-| `nvim-lspconfig` | Provides server definitions used by mason-lspconfig. |
+| `folke/lazy.nvim` | Plugin manager |
+| `nvim-mini/mini.nvim` | The entire mini.nvim library — 21 modules enabled, one repo |
+| `williamboman/mason.nvim` | Language server installer (`:Mason`) |
+| `williamboman/mason-lspconfig.nvim` | Installs the 6 servers listed in `ensure_installed`; `automatic_enable = false` since servers are enabled explicitly in `config/lsp.lua` |
+| `neovim/nvim-lspconfig` | Provides server definitions consumed by `vim.lsp.config` |
+| `nvim-treesitter/nvim-treesitter` (branch `main`) | Parser installation for highlighting/folding |
+| `rafamadriz/friendly-snippets` | Snippet **data** only (JSON files) — consumed by `mini.snippets`, no config or keymaps of its own |
 
-Servers activated and installed automatically: `ts_ls`, `html`, `cssls`, `emmet_ls`, `jsonls`, `lua_ls`.
+### The 21 mini.nvim modules, by category
 
-### Autocompletion — `plugins/completion.lua`
+**Visual core:** `mini.icons`, `mini.statusline`, `mini.tabline`, `mini.notify`, `mini.indentscope`, `mini.hipatterns`
 
-| Plugin | Purpose |
-|---|---|
-| `nvim-cmp` | The completion engine that shows the popup menu while you type. |
-| `LuaSnip` | Snippet engine — expands abbreviations into full code blocks. |
-| `friendly-snippets` | A collection of ready-made snippets for many languages. |
-| `cmp-nvim-lsp` | Feeds LSP suggestions into the completion menu. |
-| `cmp-buffer` | Feeds words from the current file into the menu. |
-| `cmp-path` | Feeds file system paths into the menu. |
+**Navigation:** `mini.files`, `mini.pick`, `mini.extra`
 
-Keymaps:
+**Completion & snippets:** `mini.completion`, `mini.snippets`
 
-| Key | Action |
-|---|---|
-| `<C-Space>` | Open the menu manually |
-| `<CR>` | Confirm selected suggestion |
-| `<C-e>` | Close the menu |
-| `<Tab>` | Move down / expand snippet |
-| `<S-Tab>` | Move up / jump back in snippet |
+**Editing — passive gains:** `mini.ai`, `mini.pairs`, `mini.surround`
 
-### Navigation — `plugins/navigation.lua`
+**Editing — new habits:** `mini.operators`, `mini.splitjoin`, `mini.move`, `mini.bracketed`
 
-| Plugin | Purpose |
-|---|---|
-| `neo-tree.nvim` | Sidebar file explorer, similar to VS Code's file tree. |
-| `telescope.nvim` | Fuzzy finder for files, text search, and buffer switching. |
+**Git & discovery:** `mini.diff`, `mini.git`, `mini.clue`
 
-Keymaps:
+Colorscheme: `miniwinter` (a `mini.hues`-based scheme bundled with `mini.nvim`), activated with `vim.cmd.colorscheme("miniwinter")` in `plugins/mini.lua` — no `setup()` of its own.
 
-| Key | Action |
-|---|---|
-| `<Space>e` | Open / close the file explorer |
-| `<Space>ff` | Find files by name |
-| `<Space>fg` | Search text across the entire project |
-| `<Space>fb` | List currently open buffers |
+LSP servers active: `ts_ls`, `html`, `cssls`, `emmet_ls`, `jsonls`, `lua_ls` (same 6 as the production config).
 
-### Git — `plugins/git.lua`
+See `keymaps.md` for the full, per-module keymap reference.
 
-| Plugin | Purpose |
-|---|---|
-| `mini.diff` | Marks the lines that differ from the git index and lets you stage or revert each hunk. |
+---
 
-Installed standalone (`nvim-mini/mini.diff`) rather than through the full `mini.nvim` library — only this module is needed, and the smaller clone avoids the long-path errors the full library can trigger on Windows. `version = "*"` pins it to the stable branch.
+## Known trade-offs
 
-The reference text comes from git, so nothing is shown for files outside a repository. Staging a hunk works; unstaging does not — use the git CLI for that.
+Registered here as accepted, conscious differences from the production config — not bugs.
 
-Changes are marked with a thin `▏` bar in the sign column on the left. Two deliberate changes from the defaults:
+1. **`indent-blankline` → `mini.indentscope`.** Not equivalent: `indent-blankline` draws a guide at *every* indent level; `mini.indentscope` only visualizes the *current* scope. No mini module draws guides at every level. Revert: reinstall `lukas-reineke/indent-blankline.nvim`.
+2. **`adwaita.nvim` → `miniwinter`.** The point of this experiment is "maximum mini," so the colorscheme goes too. Revert: reinstall `Mofiqul/adwaita.nvim`.
+3. **`nvim-cmp` + `LuaSnip` → `mini.completion` + `mini.snippets`.** Different philosophy: two-stage chain completion (LSP first, then a fallback action) instead of parallel sources. By default only items starting with the typed word are kept, ordered per the LSP spec — fuzzy matching exists but needs `lsp_completion.process_items`. Highest-friction item of the migration.
+4. **`neo-tree` → `mini.files`.** Not a persistent sidebar: a floating, column-based explorer where file manipulation happens by *editing text* (rename = edit the line, delete = remove the line, confirm in batch with `=`). Re-learning, not a drop-in replacement.
+5. **`mini.operators`'s default `replace` prefix (`gr`) is *not* used.** Its own documented default removes the native Neovim 0.11+ `gr*` LSP family (`gra`, `gri`, `grn`, `grr`, `grt`, `grx`) to make room for itself. Customized to `cr` instead — the 6 native LSP mappings stay intact, and `cr` was free (native `c` + `r` isn't a valid motion combination).
+6. **`mini.bracketed`'s `indent` target is disabled** (`suffix = ""`). Its own docs recommend this exact setup when `mini.indentscope` is already active (it owns `[i`/`]i` with more features).
+7. **`]d`/`[d`/`]D`/`[D` now come from `mini.bracketed`, not Neovim core.** Same keys, different owner — `mini.bracketed`'s version additionally supports severity filtering.
+8. **Native `s` (substitute character) is disabled**, remapped to `<Nop>` by `mini.surround` (its own documented default, to avoid an accidental trigger while typing an `s*` surround command). Use `cl` instead.
+9. **`<leader>r`/`<leader>c` groups were never created.** An earlier draft of this migration's plan assumed dedicated rename/code-action leader mappings; the native `grn`/`gra` (and friends) already cover that, so no group exists for `mini.clue` to describe.
+10. **`friendly-snippets` has no JSON snippets.** Not a regression — the production config's `LuaSnip` setup didn't have JSON coverage either.
+11. **`mini.ai` deliberately overrides** the native Neovim ≥0.12 incremental-selection mappings (`an`/`in`) and ≥0.13 (`al`/`il`) with its own "next"/"last" textobjects — intentional upstream design, not a project choice.
 
-- `view.style` is pinned to `"sign"`. The plugin picks this style on its own whenever `number` is off at setup time — and it is, because `init.lua` loads `config.lazy` (which runs the plugin's setup) before `config.options` enables `number`. Pinning it keeps the look stable if that order ever changes. Swap to `"number"` to color the line number instead of using a sign.
-- `view.signs` uses `▏` (left one eighth block) instead of the default `▒`, which fills the whole cell and reads as a thick bar.
+---
 
-`signcolumn` is set to `yes` in `config/options.lua` so the column is always reserved — the plugin's docs recommend it for this style, otherwise the text shifts sideways the moment the first hunk appears.
+## Why lazy.nvim, not mini.deps or vim.pack
 
-Keymaps:
+`mini.deps`'s own docs say that on Neovim ≥0.12 the recommended path forward is `vim.pack`, and that `mini.deps` stays in the library but likely won't get new features — it's in maintenance mode.
 
-| Key | Action |
-|---|---|
-| `]h` / `[h` | Next / previous hunk |
-| `]H` / `[H` | Last / first hunk |
-| `ghgh` | Stage the hunk under the cursor |
-| `gHgH` | Revert the hunk under the cursor |
-| `gh` (visual) | Hunk text object |
-| `<Space>gd` | Toggle the inline diff overlay |
+`vim.pack` is also out: this config is synced between Fedora and Windows 11, and `lazy-lock.json` gives reproducible, version-controlled state. `mini.deps`'s snapshot feature has no real equivalent here — loading a snapshot doesn't change the spec inside `MiniDeps.add()`, so the next update can silently undo it.
 
-### Syntax Highlighting — `plugins/treesitter.lua`
-[nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) handles parser installation only; highlighting and folding themselves are powered natively by Neovim (built-in since 0.12).
+Switching plugin managers is an orthogonal decision to adopting mini — this branch didn't mix the two.
 
-> **Note:** the nvim-treesitter project was archived by its maintainer in April 2026 after a full rewrite (the `main` branch). This config pins that branch explicitly — the previous default branch no longer exists for new installs, and no further updates are expected upstream.
+---
 
-Languages installed: `lua`, `javascript`, `typescript`, `tsx`, `html`, `css`, `scss`, `json`.
+## Metrics
 
-Highlighting and Treesitter-based folding are enabled explicitly for the front-end languages above via a `FileType` autocommand (Lua gets this automatically from Neovim's own bundled `ftplugin`). Folds are open by default (controlled by `foldlevel = 99` in `options.lua`). Use `za` to toggle a fold manually.
+| | `main` (production) | `feat/mini` (this branch) |
+|---|---|---|
+| Plugin repositories | 20 | **7** |
+| `.lua` files | 12 | **9** |
+| Mini modules enabled | 0 | **21** (1 repository) |
+| Startup time (median of 3, headless) | ~84ms | **~59ms** |
 
-Treesitter-based indentation is available upstream but intentionally **not enabled** here — it's marked experimental, and formatting is already handled by Biome.js/ESLint/Prettier.
-### Theme — `plugins/theme.lua`
-[Adwaita.nvim](https://github.com/Mofiqul/adwaita.nvim) — a color scheme inspired by GNOME's default UI style. Loaded with high priority to prevent a flash of incorrect colors on startup.
-
-### UI Enhancements — `plugins/ui.lua`
-[indent-blankline.nvim](https://github.com/lukas-reineke/indent-blankline.nvim) draws a thin vertical line (`│`) at each indentation level, making nested code easier to scan. Also highlights the indentation level of the block the cursor is currently in.
+`:checkhealth` is clean — the only `ERROR` is lazy.nvim's own generic `luarocks`/`hererocks` check, unrelated to any of the 7 plugins here (none need luarocks). Remaining `WARNING`s are all for language toolchains this config doesn't use (Go, Ruby, PHP, Java, Julia, Perl providers, etc).
 
 ---
 
 ## Maintaining the Configuration
 
 ### Updating plugins
-Open Neovim and run:
+`:Lazy update`, or `U` inside the `:Lazy` UI.
+
+### Inspecting any mini module
+Every module's help is `:h mini.<module>` (e.g. `:h mini.pick`). Its **effective** configuration (after your overrides merge with defaults) is always inspectable at runtime:
 ```
-:Lazy update
+:lua vim.print(MiniPick.config)
 ```
-Or press `U` inside the `:Lazy` interface.
+Replace `MiniPick` with the module's global (`MiniFiles`, `MiniCompletion`, `MiniClue`, …).
 
 ### If Treesitter parsers get out of sync
-Since parsers are compiled locally, a parser can fall out of sync with its highlighting query — most often right after `:Lazy update`, because the queries that ship with the plugin move forward while the compiled parser on disk stays behind. The symptom is a `Query error: Invalid field name "..."` when opening a file.
+Symptom: `Query error: Invalid field name "..."` on open, most often right after `:Lazy update`. Fix: `:TSUpdate` (or open a fresh headless session — this branch installs the `lua` parser from the same package as the front-end languages specifically to avoid this, see the comment in `plugins/treesitter.lua`).
 
-Fix by rebuilding the parsers:
-
-```
-:TSUpdate
-```
-(Or `:TSUninstall lua` followed by `:TSUpdate` to force one language from scratch.)
-
-If the rebuild itself fails, the compiler is the problem, not the parser — check the `bin/` shims and `config/compiler.lua` described in the Requirements section.
-
-Parsers compiled by this branch live outside the plugin, one `.so` per language:
-- **Linux:** `~/.local/share/nvim/site/parser/`
-- **Windows:** `%LOCALAPPDATA%\nvim-data\site\parser\`
-
-So deleting the plugin folder has no effect on installed parsers. A `parser/` directory left behind *inside* `lazy/nvim-treesitter/` is a leftover from the pre-rewrite layout; `site/parser/` comes first in the runtimepath and wins, and `:checkhealth vim.treesitter` marks the shadowed copies as `(not loaded)`.
+If the rebuild itself fails, the compiler is the problem, not the parser — check the `bin/` shims and `config/compiler.lua`.
 
 ### Installing a new language server
-1. Open `:Mason` and find the server you want.
-2. Press `i` to install it.
-3. Add the server name to `ensure_installed` in `plugins/lsp.lua` (so it stays installed on future machines).
-4. Add `vim.lsp.config("server_name", {})` and include it in `vim.lsp.enable({...})` at the top of `plugins/lsp.lua`.
+1. `:Mason`, find the server, press `i`.
+2. Add its name to `ensure_installed` in `plugins/lsp.lua`.
+3. Add `vim.lsp.config("server_name", {})` and include it in `vim.lsp.enable({...})` in `config/lsp.lua`. **Never** `require('lspconfig').<server>.setup{}`.
+
+### Configuring mini.pick's search exclusions
+`mini.pick`'s CLI-backed pickers (`files`, `grep`, `grep_live`) are called with only basic arguments — there is no `file_ignore_patterns`-style option in Lua. Exclusions are configured through each underlying tool: `RIPGREP_CONFIG_PATH` (env var pointing to an `rg` config file) for `rg`, `.fdignore`/`--exclude` for `fd`, `.gitignore` for `git`.
 
 ### Adding a new plugin
-Create a new `.lua` file inside `lua/plugins/` (or add to an existing one). lazy.nvim scans that entire folder automatically — no need to register anything in `init.lua`.
+Create a new `.lua` file inside `lua/plugins/` (or add to an existing one) — lazy.nvim scans the whole folder automatically.
 
 ### Checking plugin status
-- `:Lazy` — opens the plugin manager UI (shows installed, pending updates, errors)
-- `:Mason` — opens the language server installer
-- `:checkhealth nvim-treesitter` — shows installed parsers and verifies `tree-sitter-cli`/the C compiler are found
-- `:LspInfo` — shows which language servers are active in the current buffer
+- `:Lazy` — plugin manager UI
+- `:Mason` — language server installer
+- `:checkhealth nvim-treesitter` — installed parsers, `tree-sitter-cli`/compiler detection
+- `:checkhealth mini.pick` (or any `mini.*` health section inside `:checkhealth`) — CLI tool detection for pickers
+- `:LspInfo` — active language servers in the current buffer
+
+---
+
+## Reverting
+
+The experiment is disposable by construction:
+
+```bash
+cd ~/.config/nvim
+git worktree remove ~/.config/nvim-mini --force
+git branch -D feat/mini
+rm -rf ~/.local/share/nvim-mini ~/.local/state/nvim-mini
+```
+
+Production config in `~/.config/nvim` was never touched and stays exactly as it was.
+
+For a **partial** revert (keep mini, undo one specific piece), see the paths noted in [Known trade-offs](#known-trade-offs).

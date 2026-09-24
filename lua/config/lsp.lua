@@ -14,8 +14,16 @@ vim.lsp.config("cssls", {})
 vim.lsp.config("emmet_ls", {
   filetypes = { "html", "css", "scss", "javascriptreact", "typescriptreact" },
 })
+vim.lsp.config("jsonls", {})
+vim.lsp.config("lua_ls", {
+  settings = {
+    Lua = {
+      diagnostics = { globals = { "vim" } }, -- Não marcar `vim` como global indefinida
+    },
+  },
+})
 
-vim.lsp.enable({ "ts_ls", "html", "cssls", "emmet_ls" })
+vim.lsp.enable({ "ts_ls", "html", "cssls", "emmet_ls", "jsonls", "lua_ls" })
 
 -- KEYMAPS
 -- O Neovim 0.11+ já mapeia por padrão: grn (rename), gra (code action),

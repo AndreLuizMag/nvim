@@ -24,6 +24,8 @@ return {
         "html",     -- HTML
         "cssls",    -- CSS e SCSS
         "emmet_ls", -- Emmet
+        "jsonls",   -- JSON
+        "lua_ls",   -- Lua (inclusive esta própria config)
       },
       -- Os servidores já são ligados explicitamente com vim.lsp.enable em
       -- config/lsp.lua; deixar o mason-lspconfig ligar de novo só duplicaria
