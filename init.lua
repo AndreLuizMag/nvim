@@ -8,7 +8,7 @@ vim.pack.add({
 })
 
 require('config.options')
-require('config.gui')
+require('config.neovide')
 require('plugins.mini-hues')
 require('plugins.mini-icons')
 require('plugins.mini-files')
