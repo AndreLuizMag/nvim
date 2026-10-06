@@ -5,5 +5,6 @@ vim.pack.add({
 })
 
 require('config.options')
+require('plugins.mini-hues')
 require('plugins.mini-icons')
 require('plugins.mini-files')
