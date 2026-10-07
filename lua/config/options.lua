@@ -33,3 +33,9 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.opt_local.linebreak = true -- Break at word boundaries, not mid-word
   end,
 })
+
+-- COMPLETION MENU
+-- menuone: show the popup even with a single match. noinsert: first item is
+-- pre-selected but nothing is inserted until accepted (<CR>, see config/lsp.lua).
+-- popup: documentation window for the selected item.
+vim.opt.completeopt = { "menuone", "noinsert", "popup" }
