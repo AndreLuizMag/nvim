@@ -10,9 +10,10 @@ diff.setup({
     -- Padrão vira 'number' quando `number` está ligado; aqui queremos a coluna de sinais.
     style = 'sign',
     -- Padrão é '▒' (bloco cheio). '▏' desenha só uma barra fina à esquerda.
-    signs = { add = '▏', change = '▏', delete = '▏' },
+    signs = { add = '│', change = '│', delete = '│' },
   },
 })
+--     signs = { add = '▏', change = '▏', delete = '▏' },
 
 -- Overlay com o diff completo inline (sem mapping padrão na doc)
 vim.keymap.set('n', '<leader>gd', diff.toggle_overlay, { desc = 'Alternar overlay do git diff' })
