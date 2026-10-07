@@ -18,16 +18,21 @@ end
 -- Comma-separated list = fallback: a glyph missing in the first font is taken
 -- from the next. Maple Mono has no Nerd Font glyphs (mini.icons uses
 -- U+E000+ and U+F0000+), so FiraCode Nerd Font Mono supplies them.
-vim.o.guifont = 'Maple Mono:h12,FiraCode Nerd Font Mono:h12'
+--
+-- Options (":h12") go ONCE, at the end, and apply to every font in the list.
+-- Neovide splits on ":" before ",", so "Font A:h12,Font B:h12" leaves only
+-- "Font A" loaded and silently drops the fallback — U+F0000+ icons then
+-- render as the PUA glyph of Neovide's embedded LastResort font (a planet).
+vim.o.guifont = 'Maple Mono,FiraCode Nerd Font Mono:h14'
 
 -- Vertical spacing between lines (pixels)
 vim.opt.linespace = 4
 
 -- Space between the OS window border and the buffer content
-vim.g.neovide_padding_top = 12
-vim.g.neovide_padding_bottom = 12
-vim.g.neovide_padding_right = 12
-vim.g.neovide_padding_left = 12
+vim.g.neovide_padding_top = 4
+vim.g.neovide_padding_bottom = 4
+vim.g.neovide_padding_right = 4
+vim.g.neovide_padding_left = 4
 
 -- Cmd line hidden by default
 vim.o.cmdheight = 0
