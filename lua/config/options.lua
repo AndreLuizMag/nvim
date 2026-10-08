@@ -38,6 +38,11 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+-- HTML INDENT
+-- O script nativo indent/html.vim trata <p> como tag de fechamento opcional e por
+-- isso não indenta o conteúdo dela com =. Incluir p na lista de tags indentadas.
+vim.g.html_indent_inctags = "p"
+
 -- FOLDING
 -- Indent-based (no Treesitter parsers installed, see CLAUDE.md). Use za/zc/zo as usual.
 vim.opt.foldmethod = "indent"

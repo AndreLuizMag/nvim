@@ -25,3 +25,10 @@ vim.lsp.config('lua_ls', {
   end,
   settings = { Lua = {} },
 })
+
+-- html: formatador (gq / vim.lsp.buf.format) quebra texto longo em 80 colunas,
+-- alinhado ao colorcolumn. Padrão do servidor é 120. Só quebra texto; tags
+-- com muitos atributos ficam intactas.
+vim.lsp.config('html', {
+  settings = { html = { format = { wrapLineLength = 80 } } },
+})
