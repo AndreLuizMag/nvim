@@ -34,6 +34,11 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+-- FOLDING
+-- Indent-based (no Treesitter parsers installed, see CLAUDE.md). Use za/zc/zo as usual.
+vim.opt.foldmethod = "indent"
+vim.opt.foldlevelstart = 99 -- Open all folds by default; close manually with za/zc
+
 -- COMPLETION MENU
 -- menuone: show the popup even with a single match. noinsert: first item is
 -- pre-selected but nothing is inserted until accepted (<CR>, see config/lsp.lua).
