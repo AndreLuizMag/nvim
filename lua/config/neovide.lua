@@ -52,18 +52,6 @@ vim.o.cmdheight = 0
 -- that row shows nothing useful; hidden here only, terminal keeps it.
 vim.o.laststatus = 0
 
--- Overall UI scale — works like a zoom, useful on high-DPI screens.
--- Neovide computes the final size as: guifont "h" × OS scale × this value.
--- On Linux (Wayland) the OS reports scale 1.0, so h10 above is already right.
--- On Windows the OS scale is rarely 1.0 ("Scale" in Settings > System >
--- Display), so the same h10 comes out bigger — compensate here.
-if vim.fn.has('win32') == 1 then
-  -- Formula: 1 / (scale% / 100). E.g. 125% -> 0.8 | 150% -> 0.67 | 175% -> 0.57
-  vim.g.neovide_scale_factor = 0.8
-else
-  vim.g.neovide_scale_factor = 1.0
-end
-
 -- Animation duration (seconds). Lower for a snappier feel, 0 disables.
 vim.g.neovide_cursor_animation_length = 0.08
 vim.g.neovide_scroll_animation_length = 0.20
