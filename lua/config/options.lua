@@ -21,6 +21,10 @@ vim.opt.expandtab = true  -- Convert tabs to spaces
 
 vim.opt.clipboard = "unnamedplus" -- Use the system clipboard
 
+-- Thin guide at the Prettier/Biome default line width. Native option: replaces
+-- a hand-rolled decoration-provider ruler that had erratic behavior.
+vim.opt.colorcolumn = "80"
+
 -- LINE WRAPPING
 vim.opt.wrap = false -- Don't visually wrap long lines by default
 

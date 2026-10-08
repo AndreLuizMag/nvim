@@ -8,9 +8,8 @@
 -- Without enable() the default omnifunc (<C-x><C-o>) only inserts the plain
 -- label; snippets and textEdits (e.g. Emmet `html:5`) are never expanded.
 -- With enable(): popup opens automatically on the server's triggerCharacters,
--- first item is pre-selected (completeopt=noinsert), <CR> accepts it and
--- expands snippet / applies text edits. <C-n>/<C-p> move, <C-e> closes.
--- Jump between snippet placeholders with <Tab> / <S-Tab> (runtime default).
+-- first item is pre-selected (completeopt=noinsert). <C-n>/<C-p> move, <C-e>
+-- closes. <CR> is left untouched (always a plain newline, see :h i_<CR>).
 vim.api.nvim_create_autocmd('LspAttach', {
   group = vim.api.nvim_create_augroup('lsp_completion', { clear = true }),
   callback = function(ev)
@@ -21,7 +20,18 @@ vim.api.nvim_create_autocmd('LspAttach', {
   end,
 })
 
--- <CR> accepts the selected completion item; plain <CR> when no popup is open.
-vim.keymap.set('i', '<CR>', function()
-  return vim.fn.pumvisible() == 1 and '<C-y>' or '<CR>'
-end, { expr = true, desc = 'Accept completion item' })
+-- <Tab>: accept the selected completion item (expands snippet / applies text
+-- edits, same as <C-y>) when the popup is visible; otherwise jump to the next
+-- snippet placeholder (:h vim.snippet.jump) when one is active; otherwise a
+-- plain Tab. <S-Tab> keeps the runtime default (jump to the previous
+-- placeholder, :h vim.snippet-mappings), since nothing here overrides it.
+vim.keymap.set('i', '<Tab>', function()
+  if vim.fn.pumvisible() == 1 then
+    return '<C-y>'
+  end
+  if vim.snippet.active({ direction = 1 }) then
+    vim.snippet.jump(1)
+    return ''
+  end
+  return '<Tab>'
+end, { expr = true, desc = 'Accept completion item or jump to next snippet placeholder' })

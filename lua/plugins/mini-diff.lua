@@ -13,7 +13,6 @@ diff.setup({
     signs = { add = '│', change = '│', delete = '│' },
   },
 })
---     signs = { add = '▏', change = '▏', delete = '▏' },
 
 -- Overlay com o diff completo inline (sem mapping padrão na doc)
 vim.keymap.set('n', '<leader>gd', diff.toggle_overlay, { desc = 'Alternar overlay do git diff' })

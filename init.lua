@@ -8,7 +8,6 @@ vim.pack.add({
 })
 
 require('config.options')
--- require('config.ruler')
 require('config.neovide')
 require('config.lsp')
 require('plugins.mini-hues')
