@@ -10,12 +10,28 @@
 -- With enable(): popup opens automatically on the server's triggerCharacters,
 -- first item is pre-selected (completeopt=noinsert). <C-n>/<C-p> move, <C-e>
 -- closes. <CR> is left untouched (always a plain newline, see :h i_<CR>).
+--
+-- `convert` (:h vim.lsp.completion.enable()) rewrites the popup columns per
+-- item. Emmet sends no CompletionItemKind, so Neovim's own default converter
+-- falls back to the literal "Unknown" for every abbreviation, even though it
+-- parsed it correctly (the preview window already shows the right expansion).
+-- Only the first client to attach to a buffer gets its `convert` kept, so it
+-- must stay generic for every server, not just Emmet — hence the `item.detail`
+-- check before touching anything.
 vim.api.nvim_create_autocmd('LspAttach', {
   group = vim.api.nvim_create_augroup('lsp_completion', { clear = true }),
   callback = function(ev)
     local client = vim.lsp.get_client_by_id(ev.data.client_id)
     if client and client:supports_method('textDocument/completion') then
-      vim.lsp.completion.enable(true, client.id, ev.buf, { autotrigger = true })
+      vim.lsp.completion.enable(true, client.id, ev.buf, {
+        autotrigger = true,
+        convert = function(item)
+          if item.detail == 'Emmet Abbreviation' then
+            return { kind = 'Emmet', menu = '' }
+          end
+          return {}
+        end,
+      })
     end
   end,
 })
