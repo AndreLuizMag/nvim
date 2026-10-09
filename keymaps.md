@@ -114,3 +114,38 @@ Tudo nativo do Neovim. Uma aba é um conjunto de janelas (splits), não um arqui
 | Comando | Modo | O que faz |
 |---|---|---|
 | `:tabdo comando` | Comando | Roda `comando` em cada aba (ex.: `:tabdo e` recarrega os arquivos) |
+
+## Pesquisa (mini.pick)
+
+Abre um picker flutuante: digita e a lista filtra ao vivo. Configurado em `lua/plugins/mini-pick.lua`.
+
+### Abrir um picker
+
+| Comando | Modo | O que faz |
+|---|---|---|
+| `<leader>ff` | Normal | Arquivos do projeto (pasta atual, recursivo). Filtra pelo nome |
+| `<leader>fg` | Normal | Texto em todos os arquivos do projeto, ao vivo (ripgrep). Cada linha = arquivo:linha com o termo |
+| `<leader>fb` | Normal | Buffers abertos |
+| `<leader>fh` | Normal | Tags do help do Neovim |
+| `<leader>fr` | Normal | Reabre o último picker com a busca que estava |
+| `:Pick grep` | Comando | Igual `<leader>fg`, mas pergunta o termo uma vez (sem ao vivo) |
+
+### Dentro do picker
+
+| Tecla | O que faz |
+|---|---|
+| `<C-n>` / `<C-p>` | Item de baixo / de cima |
+| `<CR>` | Abre o item na janela atual |
+| `<C-s>` / `<C-v>` / `<C-t>` | Abre em split horizontal / vertical / aba nova |
+| `<Tab>` | Liga/desliga preview do item |
+| `<S-Tab>` | Mostra informações e todos os atalhos do picker |
+| `<C-x>` | Marca/desmarca o item atual |
+| `<C-a>` | Marca/desmarca todos |
+| `<M-CR>` | Abre os marcados. No `grep_live` manda todos para o quickfix |
+| `<C-Space>` | Refina: os resultados atuais viram a lista base, nova busca em cima deles |
+| `<Esc>` | Fecha |
+
+Notas:
+- Busca em todos os arquivos abertos: usar `<leader>fg` (busca no projeto inteiro, que inclui os abertos). Busca só nas linhas dos buffers abertos (`buf_lines`) é do mini.extra, não instalado.
+- `<leader>fg` respeita `.gitignore` (ripgrep), então não entra em `node_modules`.
+- Substituir em vários arquivos: `<leader>fg`, termo, `<C-a>`, `<M-CR>` (vai para o quickfix), depois `:cfdo %s/termo/novo/g | update`.
