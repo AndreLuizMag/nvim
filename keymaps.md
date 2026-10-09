@@ -19,6 +19,7 @@ Notas:
 - `gq` usa o servidor LSP do buffer quando há um anexado. Em HTML o limite de 80 vem de `html.format.wrapLineLength` em `lua/plugins/nvim-lspconfig.lua`.
 - `=` em HTML indenta o conteúdo de `<p>` graças a `vim.g.html_indent_inctags = "p"` em `lua/config/options.lua`.
 - Fluxo típico para um bloco HTML com texto longo: selecionar com `V`, apertar `gq`.
+- Em `.tsx` / `.jsx` use `gq` (ou `gggqG` no arquivo inteiro) em vez de `=`: o indent nativo do Neovim não entende JSX, só o LSP (vtsls) aninha as tags corretamente.
 
 ## Vários arquivos ao mesmo tempo (splits)
 
