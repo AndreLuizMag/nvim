@@ -58,3 +58,11 @@ vim.g.neovide_scroll_animation_length = 0.20
 
 -- Ask for confirmation when closing with unsaved buffers
 vim.g.neovide_confirm_quit = true
+
+vim.g.neovide_title_background_color = string.format(
+    "%x",
+    vim.api.nvim_get_hl(0, {id=vim.api.nvim_get_hl_id_by_name("Normal")}).bg
+)
+
+vim.g.neovide_title_background_color= "#222226"
+vim.g.neovide_title_text_color = "#ffffff"
